@@ -22,8 +22,7 @@ Every run depends strictly on user-selected initial height, angle, velocity, and
 - Real-time velocity vector components (Vx and Vy)
 - Camera-follow effect with scrolling ground
 - Subtle motion trail behind projectile
-- Exactly two realistic bounces with energy loss
-- Optional buzzer feedback for input and errors
+- Optional buzzer feedback 
 
 ---
 
@@ -39,7 +38,6 @@ Implementation details:
 - Fixed time-step integration
 - Gravity affects only vertical velocity
 - Accurate ground-impact interpolation (prevents overshoot)
-- Energy loss applied on bounces
 - No lookup tables or hardcoded trajectories
 
 ---
@@ -121,8 +119,6 @@ Invalid input triggers an error sound (if buzzer enabled).
 - Ground scrolls backward to simulate motion
 - Motion trail shows recent positions
 - On landing:
-  - Exactly two bounces occur
-  - Energy loss is applied
   - Simulation stops cleanly
 
 ---
@@ -141,35 +137,61 @@ After completion, a minimal summary is shown:
 - SSD1306 OLED 128×64 (I2C)
 - 3 push buttons
 - Optional active buzzer
-- Breadboard and jumper wires
+- Optional Breadboard and jumper wires
 - USB cable for flashing
 
 ---
 
 ## Wiring
 
-### Button Wiring (INPUT_PULLUP)
+### Pin Mapping (Buttons + Buzzer)
 
-Buttons connect between GPIO and GND.  
-Pressed state = LOW.
+Buttons are wired using `INPUT_PULLUP` (pressed = LOW).  
+Connect one side of each button to the GPIO pin and the other side to **GND**.
 
-| Function | GPIO | NodeMCU Pin |
-|--------|------|-------------|
-| UP     | 14   | D5 |
-| DOWN   | 12   | D6 |
-| ENTER  | 13   | D7 |
-| BUZZER | 15   | D8 |
+| Control | GPIO | NodeMCU Pin | Notes |
+|--------|------|-------------|------|
+| UP     | 14   | D5          | Button → GND |
+| DOWN   | 12   | D6          | Button → GND |
+| ENTER  | 13   | D7          | Button → GND |
+| BUZZER (optional) | 15 | D8 | Active buzzer (+) → GPIO15, (−) → GND |
 
 ---
 
-### OLED I2C Wiring
+### OLED (SSD1306) I2C Wiring
 
 | OLED Pin | NodeMCU Pin | GPIO |
 |---------|-------------|------|
-| VCC     | 3.3V        | — |
+| VCC     | 3V3         | — |
 | GND     | GND         | — |
 | SDA     | D2          | GPIO4 |
 | SCL     | D1          | GPIO5 |
+
+---
+
+### Wiring Preview
+
+```text
+                ESP8266 NodeMCU                          SSD1306 OLED (I2C)
+        ┌─────────────────────────┐                 ┌──────────────────────┐
+3V3  ───┤ 3V3                 GND ├─────── GND ─────┤ GND              VCC ├─── 3V3
+GND  ───┤ GND                      │                 │                      │
+SCL  ───┤ D1 / GPIO5  ─────────────┼─────────────────┤ SCL                  │
+SDA  ───┤ D2 / GPIO4  ─────────────┼─────────────────┤ SDA                  │
+        │                         │                 └──────────────────────┘
+        │  Buttons (INPUT_PULLUP) │
+        │                         │
+UP     ─┤ D5 / GPIO14 ──[BUTTON]──┴─── GND
+DOWN   ─┤ D6 / GPIO12 ──[BUTTON]────── GND
+ENTER  ─┤ D7 / GPIO13 ──[BUTTON]────── GND
+        │
+BUZZER ─┤ D8 / GPIO15 ──( + BUZZER − )── GND
+        └─────────────────────────┘
+
+Notes:
+- Buttons: one side to GPIO, other side to GND (pressed = LOW).
+- OLED power: use 3.3V recommended.
+```
 
 ---
 
@@ -235,3 +257,4 @@ AI assistance was used as a **technical aid**, not as a replacement for understa
 All final design decisions, testing, debugging, and integration were done manually, with a focus on learning and correctness rather than speed.
 
 This project represents persistence, problem-solving under constraint, and the practical use of AI as a supportive tool in engineering—not as an automated solution generator.
+
