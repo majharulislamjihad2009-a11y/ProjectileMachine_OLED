@@ -1,260 +1,254 @@
 # ProjectileMachine_OLED
 
-ProjectileMachine_OLED is a physics-accurate projectile motion simulator built on an ESP8266 NodeMCU with a 0.96" SSD1306 OLED display.  
-The project is designed to demonstrate real-time physics simulation on constrained embedded hardware using a minimal, clean user interface.
+ProjectileMachine_OLED is a physics-accurate projectile motion simulator built on an ESP8266 NodeMCU with a 0.96" SSD1306 OLED display (128×64).
 
-The simulation is calculated live. There are no preset paths or fake animations.  
+This project demonstrates how real-time physics simulation can run smoothly on constrained embedded hardware using a minimal and clean user interface.
+
+All motion is calculated live.
+There are no preset animations or lookup tables.
 Every run depends strictly on user-selected initial height, angle, velocity, and gravity.
 
 ---
 
-## Main Features
+## Demo
+
+YouTube video:
+https://youtube.com/shorts/ClX_AxegJIg?si=9OpkDlyONRSiR_SK
+
+---
+
+## Features
 
 - Real-time projectile motion simulation
-- Minimal, non-crowded OLED UI (128×64)
+- No pre-rendered trajectories
+- Minimal, non-crowded OLED UI
 - Initial height selection with skip option
 - Gravity modes:
   - Earth (9.81 m/s²)
   - Moon (1.62 m/s²)
   - Custom gravity via Morse input
-- Morse-based numeric input with decimal support (`.-`)
+- Morse-based numeric input with decimal support (.-)
 - Live trajectory prediction before launch
-- Real-time velocity vector components (Vx and Vy)
-- Camera-follow effect with scrolling ground
-- Subtle motion trail behind projectile
-- Optional buzzer feedback 
+- Real-time velocity vector components (Vx, Vy)
+- Camera-follow scrolling ground
+- Subtle projectile motion trail
+- Optional buzzer feedback
 
 ---
 
-## Physics Model (Overview)
+## Physics Model
 
-The simulation follows standard projectile motion equations with initial height:
+Standard projectile equations with initial height:
 
-x(t) = v0 · cos(θ) · t
+x(t) = v0 · cos(θ) · t  
 y(t) = h0 + v0 · sin(θ) · t − ½ · g · t²
 
-
 Implementation details:
+
 - Fixed time-step integration
 - Gravity affects only vertical velocity
-- Accurate ground-impact interpolation (prevents overshoot)
-- No lookup tables or hardcoded trajectories
+- Accurate ground-impact interpolation
+- No lookup tables
+- No hardcoded paths
+
+All calculations are computed in real time on the ESP8266.
 
 ---
 
-## How to Use (User Flow)
+## User Flow
 
 ### 1. Power On
-- Device boots and shows a short startup animation
-- Automatically proceeds to the height selection screen
-
----
+- Startup animation
+- Automatically enters height selection
 
 ### 2. Initial Height Selection
-Purpose: Set initial height `h0` in meters
+Set initial height h0 in meters.
 
 Controls:
-- UP (hold): increase height
-- DOWN (hold): decrease height
-- ENTER: confirm and continue
-- ENTER immediately: skip (height defaults to 0)
+- UP (hold): increase
+- DOWN (hold): decrease
+- ENTER: confirm
+- ENTER immediately: skip (0m)
 
-Only the numeric value is shown to keep the display clean.
-
----
+Only numeric value is shown for clarity.
 
 ### 3. Gravity Selection
 Options:
-- Earth (default)
+- Earth
 - Moon
 - Custom
 
 Controls:
-- UP / DOWN: change selection
+- UP / DOWN: change
 - ENTER: confirm
 
-If Custom is selected, the Morse input screen opens.
+If Custom is selected, Morse input opens.
 
----
+### 4. Custom Gravity (Morse Input)
 
-### 4. Custom Gravity Input (Morse)
+Rules:
+- Dot: .
+- Dash: -
+- Decimal point: .-
 
-Gravity can be entered as a decimal value (example: 9.81).
-
-Morse rules:
-- Dot: `.`
-- Dash: `-`
-- Decimal point: `.-`
-
-Button mapping:
+Buttons:
 - UP: dot
 - DOWN: dash
-- ENTER: confirm symbol
-- Long-press ENTER: backspace / clear
+- ENTER: confirm
+- Long ENTER: backspace/clear
 
-Invalid input triggers an error sound (if buzzer enabled).
+Invalid input triggers error sound (optional).
 
----
+### 5. Angle Mode
+- Hold UP/DOWN to rotate cannon
+- Live trajectory preview
+- ENTER switches to velocity
 
-### 5. Simulation Screen
+### 6. Velocity Mode
+- Hold UP/DOWN to adjust speed
+- Live trajectory preview
+- ENTER launches
 
-#### Angle Adjustment Mode
-- Hold UP / DOWN to rotate the cannon
-- Live predicted trajectory updates in real time
-- ENTER switches to velocity adjustment
+### 7. During Simulation
+- Real-time physics
+- Vx and Vy vectors displayed
+- Camera follows projectile
+- Ground scroll effect
+- Motion trail
+- Clean stop on landing
 
-#### Velocity Adjustment Mode
-- Hold UP / DOWN to change launch velocity
-- Live predicted trajectory updates
-- ENTER starts the simulation
-
----
-
-### 6. During Simulation
-- Projectile follows real-time physics
-- Velocity component arrows show:
-  - Horizontal velocity (Vx)
-  - Vertical velocity (Vy), changing with time
-- Projectile stays near the screen center (camera-follow effect)
-- Ground scrolls backward to simulate motion
-- Motion trail shows recent positions
-- On landing:
-  - Simulation stops cleanly
-
----
-
-### 7. Result Display
-After completion, a minimal summary is shown:
-- R: horizontal range
-- H: maximum height
-- T: total flight time
+### 8. Result Screen
+Shows:
+- R: range
+- H: max height
+- T: flight time
 
 ---
 
 ## Hardware Requirements
 
-- ESP8266 NodeMCU (ESP-12E / ESP-12F)
+- ESP8266 NodeMCU (ESP-12E/ESP-12F)
 - SSD1306 OLED 128×64 (I2C)
 - 3 push buttons
 - Optional active buzzer
-- Optional Breadboard and jumper wires
-- USB cable for flashing
+- Breadboard + jumper wires
+- USB cable
 
 ---
 
 ## Wiring
 
-### Pin Mapping (Buttons + Buzzer)
+### Buttons and Buzzer (INPUT_PULLUP)
 
-Buttons are wired using `INPUT_PULLUP` (pressed = LOW).  
-Connect one side of each button to the GPIO pin and the other side to **GND**.
+Buttons connect GPIO → GND (pressed = LOW).
 
-| Control | GPIO | NodeMCU Pin | Notes |
-|--------|------|-------------|------|
-| UP     | 14   | D5          | Button → GND |
-| DOWN   | 12   | D6          | Button → GND |
-| ENTER  | 13   | D7          | Button → GND |
-| BUZZER (optional) | 15 | D8 | Active buzzer (+) → GPIO15, (−) → GND |
+| Control | GPIO | NodeMCU Pin |
+|--------|------|-------------|
+| UP     | 14   | D5 |
+| DOWN   | 12   | D6 |
+| ENTER  | 13   | D7 |
+| BUZZER | 15   | D8 |
 
----
+### OLED (I2C)
 
-### OLED (SSD1306) I2C Wiring
-
-| OLED Pin | NodeMCU Pin | GPIO |
-|---------|-------------|------|
-| VCC     | 3V3         | — |
-| GND     | GND         | — |
-| SDA     | D2          | GPIO4 |
-| SCL     | D1          | GPIO5 |
-
----
-
-### Wiring Preview
-
-```text
-                ESP8266 NodeMCU                          SSD1306 OLED (I2C)
-        ┌─────────────────────────┐                 ┌──────────────────────┐
-3V3  ───┤ 3V3                 GND ├─────── GND ─────┤ GND              VCC ├─── 3V3
-GND  ───┤ GND                      │                 │                      │
-SCL  ───┤ D1 / GPIO5  ─────────────┼─────────────────┤ SCL                  │
-SDA  ───┤ D2 / GPIO4  ─────────────┼─────────────────┤ SDA                  │
-        │                         │                 └──────────────────────┘
-        │  Buttons (INPUT_PULLUP) │
-        │                         │
-UP     ─┤ D5 / GPIO14 ──[BUTTON]──┴─── GND
-DOWN   ─┤ D6 / GPIO12 ──[BUTTON]────── GND
-ENTER  ─┤ D7 / GPIO13 ──[BUTTON]────── GND
-        │
-BUZZER ─┤ D8 / GPIO15 ──( + BUZZER − )── GND
-        └─────────────────────────┘
-
-Notes:
-- Buttons: one side to GPIO, other side to GND (pressed = LOW).
-- OLED power: use 3.3V recommended.
-```
+| OLED | NodeMCU |
+|-------|-----------|
+| VCC | 3V3 |
+| GND | GND |
+| SDA | D2 (GPIO4) |
+| SCL | D1 (GPIO5) |
 
 ---
 
 ## Arduino IDE Setup
 
-### ESP8266 Board Support
-Add the following URL in:
-File → Preferences → Additional Boards Manager URLs → then paste the URL → 
+### Board Support URL
+Add to:
+File → Preferences → Additional Boards Manager URLs
+
 http://arduino.esp8266.com/stable/package_esp8266com_index.json
 
-
-
-Install "ESP8266 by ESP8266 Community" from Boards Manager.
+Install:
+ESP8266 by ESP8266 Community
 
 ---
 
-### Required Libraries
-Install via Library Manager:
-- Adafruit GFX Library
+## Required Libraries
+
+Install from Library Manager:
+
+- Adafruit GFX
 - Adafruit SSD1306
 
 ---
 
-### Recommended Board Settings
-- Board: NodeMCU 1.0 (ESP-12E Module)
-- CPU Frequency: 80 MHz
-- Flash Size: 4MB
+## Recommended Settings
+
+- Board: NodeMCU 1.0 (ESP-12E)
+- CPU: 80 MHz
+- Flash: 4MB
 - Upload Speed: 115200
 - Erase Flash: Only Sketch
 
 ---
 
-### Flashing
-Open the main sketch:
+## Flashing
+
+Open:
+
 src/ProjectileMachine_OLED/ProjectileMachine_OLED.ino
 
+Select COM port and upload.
 
-Select the correct COM port and upload.
+---
+
+## Repository Structure
+
+src/ProjectileMachine_OLED/     → main sketch  
+lib/                           → libraries  
+docs/                          → diagrams/screenshots  
+README.md                      → documentation  
+
+---
+
+## Troubleshooting
+
+OLED not detected:
+- Check SDA/SCL wiring
+- Verify I2C address
+
+Buttons not responding:
+- Ensure INPUT_PULLUP wiring (GPIO → GND)
+
+Simulation unstable:
+- Use recommended board settings
+- Avoid blocking delays
 
 ---
 
 ## License
 
-MIT License. See the LICENSE file for details.
+MIT License
 
 ---
 
-## Author Note
+## Author
 
-This project was designed and built by **Majharul Islam Jihad** as a long-term learning and experimentation effort in embedded systems, physics simulation, and low-level optimization on constrained hardware.
+Majharul Islam Jihad
 
-The original plan was simple: visualize projectile motion on a small OLED.  
-During development, the scope gradually expanded to include real-time physics accuracy, live trajectory prediction, velocity vector visualization, camera-follow effects, and realistic collision handling. Achieving this on an ESP8266 with limited memory and a 128×64 display required repeated redesigns, debugging sessions, and performance tuning.
+This project was built as a long-term learning experiment in:
 
-A major challenge was maintaining numerical accuracy while keeping the code stable and responsive. Multiple iterations were needed to fix timing drift, ground-impact errors, prediction mismatches, and integration instability. Several approaches were tested and discarded before reaching the current reliable implementation.
+- embedded systems
+- physics simulation
+- real-time rendering
+- optimization under memory constraints
 
-AI assistance was used as a **technical aid**, not as a replacement for understanding. The AI helped with:
-- validating physics equations
-- identifying logical bugs
-- suggesting safer numerical approaches
-- improving code structure and documentation
+AI was used only as a technical aid for:
+- equation validation
+- debugging suggestions
+- documentation improvements
 
-All final design decisions, testing, debugging, and integration were done manually, with a focus on learning and correctness rather than speed.
+All architecture, implementation, and testing were done manually.
 
-This project represents persistence, problem-solving under constraint, and the practical use of AI as a supportive tool in engineering—not as an automated solution generator.
+The goal was understanding and engineering accuracy, not automation.
 
